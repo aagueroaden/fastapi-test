@@ -1,16 +1,30 @@
-from fastapi import FastAPI
 import uvicorn
-# from argparse import ArgumentParser
+from fastapi import FastAPI
 
-from config_dev import PORT, HOST
+from salesforce import SalesForceService
+
+
 
 app = FastAPI()
-
 
 @app.get("/")
 async def root():
     return {"message": "Hello World"}
 
 
+@app.get("/salesforce")
+async def salesforce():
+    service = SalesForceService(
+    )
+    return service.get()
+
+
 if __name__ == '__main__':
-    uvicorn.run(app, host=HOST, port=PORT)
+    env = envArgumentValidation()
+    env_settings, salesforce_settings, auth_settings = getEnvSettings(env)
+    uvicorn.run(
+        app,
+        host=env_settings.host,
+        port=env_settings.port,
+        reload=True
+    )
