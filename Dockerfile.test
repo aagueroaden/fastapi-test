@@ -1,4 +1,4 @@
-FROM python:3.8-slim
+FROM python:3.10-slim
 
 WORKDIR /salesforce_fastapi
 
@@ -9,4 +9,4 @@ COPY . /salesforce_fastapi/
 
 EXPOSE 9000
 
-CMD ["python", "main.py"]
+CMD ["python", "main.py", "-e", "test"]
