@@ -18,8 +18,8 @@ async def root():
 @app.get("/salesforce")
 async def salesforce():
     service = SalesForceService(salesforce_settings)
-    print( await service.connect())
-    return service.anotherConnect()
+    print(service.connectPrimitive())
+    return service.connect()
 
 
 async def common_parameters(q: str | None = None, skip: int = 0, limit: int = 100):

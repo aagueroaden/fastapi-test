@@ -6,7 +6,7 @@ this is a repo for the salesforce_fastapi proyect
 Build the docker image
 
 ```sh
-docker build -t [the-pod-name] [path-to-the-dockerfile]
+docker build -f [Dockerfile-file-that-you-want-to-build] -t [the-pod-name] [path/to/the/dockerfile]
 ```
 
 Run the docker image
@@ -14,7 +14,7 @@ Run the docker image
 docker run -it -p [9000:9000] [the-pod-name]
 ```
 
-ports 9000 are in the proyect itself, if you change it to another, use that port instead
+ports 9000 are in the proyect itself, if you change it to another, use that port instead, but change the dockerfile and env variables also
 
 ## Local
 
@@ -26,7 +26,7 @@ pip3 install -r requirements.txt
 ```
 run
 ```sh
-python3 main.py
+python3 main.py -e [enviroment]
 ```
 
 ## Test
