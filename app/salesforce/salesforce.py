@@ -42,6 +42,7 @@ class SalesForceService:
         self.password: str = settingsSF.sf_password
         self.connect()
 
+    # does not use any library
     def connectPrimitive(self):
         payload = {
             'client_id': self.clientId,
