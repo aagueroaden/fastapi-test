@@ -127,6 +127,9 @@ venv/
 ENV/
 env.bak/
 venv.bak/
+stage.development.env
+stage.production.env
+stage.test.env
 
 # Spyder project settings
 .spyderproject
