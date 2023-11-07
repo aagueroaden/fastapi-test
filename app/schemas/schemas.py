@@ -15,6 +15,7 @@ class SalesForceSchema(BaseModel):
     sf_user: str
     sf_pass: str
     sf_password: str
+    sf_pass: str
 
 
 class AuthSchema(BaseModel):

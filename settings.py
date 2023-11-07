@@ -48,8 +48,8 @@ def getEnvSettings(env: str) -> List | SystemExit:
         load_dotenv(dotenv_path)
 
         app_settings = AppSchema(
-            port=int(os.environ.get('PORT')),
-            host=os.environ.get('HOST'),
+            port=int(os.environ.get('APP_PORT')),
+            host=os.environ.get('APP_HOST'),
         )
 
         salesforce_settings = SalesForceSchema(

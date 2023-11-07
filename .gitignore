@@ -130,6 +130,8 @@ venv.bak/
 stage.development.env
 stage.production.env
 stage.test.env
+*.env
+
 
 # Spyder project settings
 .spyderproject
