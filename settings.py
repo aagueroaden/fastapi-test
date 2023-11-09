@@ -2,7 +2,7 @@ import os
 import sys
 from dotenv import load_dotenv
 import argparse
-from app.schemas.schemas import AppSchema, SalesForceSchema, AuthSchema
+from app.schemas.env_schemas import AppSchema, SalesForceSchema, AuthSchema
 from typing import List
 from app.constants import envOptionsPaths
 
@@ -42,6 +42,7 @@ def getEnvSettings(env: str) -> List | SystemExit:
 
     except Exception as dotenv_path_error:
         print(f"cannot load the .env file, error= {dotenv_path_error}")
+        print("SHUTTING DOWN")
         sys.exit()
 
     try:

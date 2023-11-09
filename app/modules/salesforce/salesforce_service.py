@@ -1,8 +1,8 @@
 from simple_salesforce import Salesforce
 # from simple_salesforce import SalesforceLogin
 import requests
-from app.schemas.schemas import SalesForceSchema
-from fastapi import HTTPException
+from app.schemas.env_schemas import SalesForceSchema
+from fastapi import HTTPException, status
 import urllib3
 import json
 token: str = ''
@@ -52,20 +52,20 @@ class SalesForceService:
                 consumer_secret=self.clientSecret,
                 domain='test',  # This parameter allows the connection to the sandbox
             )
-        except Exception | HTTPException as e:
+        except Exception as e:
             print(f"Connection ERROR {e}")
             print(f"cannot connect to {self.loginUrl}")
         print(f"connected to {self.loginUrl}")
         return sf_connection
 
     def executeQuery(self, query: str):
-        response = {}
+        response: dict = {}
         try:
             response = self.connection.query(query)
             print(response)
         except Exception as e:
             print(f"Error in executing the query: \n{e}")
-            response = {e}
+            response = e
             raise HTTPException
         finally:
             return response
@@ -82,18 +82,28 @@ class SalesForceService:
                 body=data,
                 method=method,
                 headers=auth,
-                url=endpoint
+                url=self.loginUrl + endpoint
             )
             if response.status == 401:
-                raise HTTPException(status_code=401, detail="invalid auth Token")
-            return json.loads(response.data)
+                raise HTTPException(
+                    status_code=status.HTTP_401_UNAUTHORIZED,
+                    detail="invalid auth Token"
+                )
+            if response.status == 200:
+                return json.loads(response.data)
+                return response.json()
+            else:
+                print(response.status)
+                return {}
         except HTTPException:
-            print("Reconecting to salesforce...")
-            self.connection = Salesforce(
-                instance=self.connection.sf_instance,
-                session_id=self.connection.session_id
-            )
-            return self.requestHTTP(method, endpoint, data)
+            if response.status == 401:
+                print("Reconecting to salesforce...")
+                self.connection = Salesforce(
+                    instance=self.connection.sf_instance,
+                    session_id=self.connection.session_id
+                )
+                return self.requestHTTP(method, endpoint, data)
+            print("maybe salesforce secret is outdated?...")
 
     # does not seem to be used in salesforce nestjs api
     async def find(self):
