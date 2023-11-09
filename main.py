@@ -1,12 +1,11 @@
 import uvicorn
 from fastapi import FastAPI
-import base64
 
 
 from settings import envArgumentValidation, getEnvSettings
 
-from app.modules.salesforce.salesforce import SalesForceService
-
+from app.modules.salesforce.salesforce_service import SalesForceService
+from app.modules.opportunities.opportunities_service import OpportunityService
 # instance of fastapi
 app = FastAPI()
 
@@ -17,10 +16,13 @@ app_settings, salesforce_settings, auth_settings = getEnvSettings(env)
 
 # instance of models
 salesforce_service = SalesForceService(salesforce_settings)
+opportunity_service = OpportunityService(salesforce_service)
+
 
 @app.get("/")
 async def root():
     return {"message": "Hello World"}
+
 
 @app.get("/salesforce")
 async def salesforce():
@@ -41,12 +43,16 @@ async def selectdata():
 @app.get("/endpoint_test/{itemId}")
 async def endpoint_test(itemId):
     # itemID example = '0066C00000J0c4VQAR'
-    endpoint = "https://adenuniversity--admins3.sandbox.my.salesforce.com//services/data/v53.0/sobjects/Opportunity/" + itemId
+    endpoint = "/services/data/v53.0/sobjects/Opportunity/" + itemId
     data = ''
     method = 'GET'
     return salesforce_service.requestHTTP(method=method, endpoint=endpoint, data=data)
 
 
+@app.get("/oportunities/{id}")
+async def oportunities(id: str):
+    opportunity = opportunity_service.find0ne(id)
+    return {"response_data": opportunity}
 
 if __name__ == '__main__':
 
