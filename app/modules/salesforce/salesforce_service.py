@@ -1,10 +1,9 @@
 from simple_salesforce import Salesforce
-# from simple_salesforce import SalesforceLogin
-import requests
-from app.schemas.env_schemas import SalesForceSchema
 from fastapi import HTTPException, status
+import requests
 import urllib3
 import json
+from app.schemas.env_schemas import SalesForceSchema
 token: str = ''
 url: str = ''
 
@@ -24,6 +23,7 @@ class SalesForceService:
         self.loginUrl: str = settingsSF.sf_login_url
         self.user: str = settingsSF.sf_user
         self.password: str = settingsSF.sf_password
+        self.sf_enviroment: str = settingsSF.sf_enviroment
         if not instanceConnection:
             self.connection: Salesforce = self._connect()
 
@@ -45,13 +45,21 @@ class SalesForceService:
 
     def _connect(self):
         try:
-            sf_connection = Salesforce(
-                username=self.user,
-                password=self.password,
-                consumer_key=self.clientId,
-                consumer_secret=self.clientSecret,
-                domain='test',  # This parameter allows the connection to the sandbox
-            )
+            if self.sf_enviroment == 'test' or self.sf_enviroment == 'dev':
+                sf_connection = Salesforce(
+                    username=self.user,
+                    password=self.password,
+                    consumer_key=self.clientId,
+                    consumer_secret=self.clientSecret,
+                    domain='test',  # This parameter allows the connection to the sandbox
+                )
+            elif self.sf_enviroment == 'prod':
+                sf_connection = Salesforce(
+                    username=self.user,
+                    password=self.password,
+                    consumer_key=self.clientId,
+                    consumer_secret=self.clientSecret,
+                )
         except Exception as e:
             print(f"Connection ERROR {e}")
             print(f"cannot connect to {self.loginUrl}")
@@ -62,7 +70,6 @@ class SalesForceService:
         response: dict = {}
         try:
             response = self.connection.query(query)
-            print(response)
         except Exception as e:
             print(f"Error in executing the query: \n{e}")
             response = e
@@ -91,7 +98,7 @@ class SalesForceService:
                 )
             if response.status == 200:
                 return json.loads(response.data)
-                return response.json()
+                # return response.json()
             else:
                 print(response.status)
                 return {}

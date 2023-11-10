@@ -5,6 +5,7 @@ from pydantic import BaseModel
 class AppSchema(BaseModel):
     port: int
     host: str
+    name_env: str
 
 
 class SalesForceSchema(BaseModel):
@@ -16,6 +17,7 @@ class SalesForceSchema(BaseModel):
     sf_pass: str
     sf_password: str
     sf_pass: str
+    sf_enviroment: str
 
 
 class AuthSchema(BaseModel):
