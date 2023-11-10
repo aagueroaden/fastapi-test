@@ -4,7 +4,7 @@ from dotenv import load_dotenv
 import argparse
 from app.schemas.env_schemas import AppSchema, SalesForceSchema, AuthSchema
 from typing import List
-from app.constants import envOptionsPaths
+from app.constants.settings_constants import envOptionsPaths
 
 
 def envArgumentValidation() -> str | SystemExit:

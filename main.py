@@ -6,6 +6,7 @@ from settings import envArgumentValidation, getEnvSettings
 
 from app.modules.salesforce.salesforce_service import SalesForceService
 from app.modules.opportunities.opportunities_service import OpportunityService
+
 # instance of fastapi
 app = FastAPI()
 
@@ -21,37 +22,34 @@ opportunity_service = OpportunityService(salesforce_service)
 
 @app.get("/")
 async def root():
-    return {"message": "Hello World"}
+    return {"SalesForce Fastapi, go to /docs to see the endpoints"}
 
 
-@app.get("/salesforce")
-async def salesforce():
-    return {'session_id': salesforce_service.connection.session_id}
+# @app.get("/salesforce")
+# async def salesforce():
+#     return {'session_id': salesforce_service.connection.session_id}
 
 
-@app.get("/querytest")
-async def selectdata():
-    mistring = '0017000000hOMChAAO'
-    query_test = """
-    SELECT Id, hed__Primary_Contact__c
-    FROM Account
-    WHERE Id = '{fid}'
-    """.format(fid=mistring)
-    return salesforce_service.executeQuery(query=query_test)
-
-
-@app.get("/endpoint_test/{itemId}")
-async def endpoint_test(itemId):
-    # itemID example = '0066C00000J0c4VQAR'
-    endpoint = "/services/data/v53.0/sobjects/Opportunity/" + itemId
-    data = ''
-    method = 'GET'
-    return salesforce_service.requestHTTP(method=method, endpoint=endpoint, data=data)
+# @app.get("/querytest")
+# async def selectdata():
+#     mistring = '0017000000hOMChAAO'
+#     query_test = """
+#     SELECT Id, hed__Primary_Contact__c
+#     FROM Account
+#     WHERE Id = '{fid}'
+#     """.format(fid=mistring)
+#     return salesforce_service.executeQuery(query=query_test)
 
 
 @app.get("/oportunities/{id}")
 async def oportunities(id: str):
-    opportunity = opportunity_service.find0ne(id)
+    opportunity = opportunity_service.find0ne(id=id)
+    return {"response_data": opportunity}
+
+
+@app.get("/oportunities/amount/{id}")
+async def opportunity_amount(id: str):
+    opportunity = opportunity_service.findOpportunityAmt(id=id)
     return {"response_data": opportunity}
 
 if __name__ == '__main__':

@@ -1,4 +1,4 @@
-def mappedObject(dict_base: dict, data):
+def mappedObject(dict_base: dict, data: dict):
     new_data = {}
     for key in data:
         if key in dict_base:
