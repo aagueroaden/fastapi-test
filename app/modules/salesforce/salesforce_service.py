@@ -27,7 +27,7 @@ class SalesForceService:
         if not instanceConnection:
             self.connection: Salesforce = self._connect()
 
-    # does not use any library except request
+    # does not use any library except request, just returns the token
     def connectPrimitive(self):
         payload = {
             'client_id': self.clientId,
@@ -40,8 +40,7 @@ class SalesForceService:
 
         json_res = response.json()
         access_token = json_res['access_token']
-        token = access_token
-        return token
+        return access_token
 
     def _connect(self):
         try:

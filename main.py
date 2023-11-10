@@ -6,23 +6,37 @@ from settings import envArgumentValidation, getEnvSettings
 
 from app.modules.salesforce.salesforce_service import SalesForceService
 from app.modules.opportunities.opportunities_service import OpportunityService
+from app.modules.gdrive.gdrive_service import GoogleDriveService
 
 # instance of fastapi
 app = FastAPI()
 
 # loading env variables
 env, name_env = envArgumentValidation()
-app_settings, salesforce_settings, auth_settings = getEnvSettings(env, name_env)
+app_settings, salesforce_settings, gdrive_settings = getEnvSettings(env, name_env)
 
 
 # instance of models
 salesforce_service = SalesForceService(salesforce_settings)
 opportunity_service = OpportunityService(salesforce_service)
+google_drive_service = GoogleDriveService(gdrive_settings)
 
 
 @app.get("/")
 async def root():
     return {"SalesForce Fastapi, go to /docs to see the endpoints"}
+
+
+@app.get("/oportunities/{id}")
+async def oportunities(id: str):
+    opportunity = opportunity_service.find0ne(id=id)
+    return {"response_data": opportunity}
+
+
+@app.get("/oportunities/amount/{id}")
+async def opportunity_amount(id: str):
+    opportunity = opportunity_service.findOpportunityAmt(id=id)
+    return {"response_data": opportunity}
 
 
 # @app.get("/salesforce")
@@ -40,17 +54,6 @@ async def root():
 #     """.format(fid=mistring)
 #     return salesforce_service.executeQuery(query=query_test)
 
-
-@app.get("/oportunities/{id}")
-async def oportunities(id: str):
-    opportunity = opportunity_service.find0ne(id=id)
-    return {"response_data": opportunity}
-
-
-@app.get("/oportunities/amount/{id}")
-async def opportunity_amount(id: str):
-    opportunity = opportunity_service.findOpportunityAmt(id=id)
-    return {"response_data": opportunity}
 
 if __name__ == '__main__':
 
