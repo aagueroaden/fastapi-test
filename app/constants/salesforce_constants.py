@@ -73,3 +73,22 @@ BASE_SALESFORCE_OBJ_MAP: dict = {
     'Cohorte_creaci_n_Oportunidad__c': 'cohort_creation_opportunity',
     'Cohorte_de_ingreso__c': 'admission_cohort',
 }
+
+# SALESFORCE PAYMENTS KEYS
+BASE_SF_PAYMENTS_OBJ_MAP = {
+    "Id": 'id',
+    "attributes": 'attributes',
+    "Cantidad_de_cuotas__c": 'qty_installments',
+    "CreatedById": 'created_by_id',
+    "Divisa__c": 'currency',
+    "Forma_de_pago__c": 'payment_type',
+    "Importe__c": 'total_amount',
+    "Name": 'name',
+    "Obtener_link_Forma_de_pago__c": 'get_link_payment_method',
+    "Oportunidad__c": 'lead',
+    "Respuesta_Hash__c": 'hash_response',
+    "Respuesta_Link__c": 'link_response',
+    "Respuesta_Tipo__c": 'type_response',
+    "Total_de_Formas_de_pago__c": 'installment_amount',
+    "LastModifiedById": 'last_modified_by_id',
+}

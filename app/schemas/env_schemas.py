@@ -20,5 +20,12 @@ class SalesForceSchema(BaseModel):
     sf_enviroment: str
 
 
+class GoogleDriveSchema(BaseModel):
+    gd_scopes_url: str
+    gd_folder_id: str
+    gd_client_email: str
+    gd_private_key: str
+
+
 class AuthSchema(BaseModel):
     auth_salesforce_api_key: str
