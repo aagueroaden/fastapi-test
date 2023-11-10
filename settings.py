@@ -29,10 +29,10 @@ def envArgumentValidation() -> str | SystemExit:
         sys.stdout.write('You need to specify a valid enviroment, check the -h for more info')
         sys.exit()
     else:
-        return envOptionsPaths[enviroment]
+        return envOptionsPaths[enviroment], enviroment
 
 
-def getEnvSettings(env: str) -> List | SystemExit:
+def getEnvSettings(env: str, name_env: str) -> List | SystemExit:
 
     try:
         dotenv_path = os.path.join(os.path.dirname(__file__), env)
@@ -42,7 +42,6 @@ def getEnvSettings(env: str) -> List | SystemExit:
 
     except Exception as dotenv_path_error:
         print(f"cannot load the .env file, error= {dotenv_path_error}")
-        print("SHUTTING DOWN")
         sys.exit()
 
     try:
@@ -51,6 +50,7 @@ def getEnvSettings(env: str) -> List | SystemExit:
         app_settings = AppSchema(
             port=int(os.environ.get('APP_PORT')),
             host=os.environ.get('APP_HOST'),
+            name_env=name_env
         )
 
         salesforce_settings = SalesForceSchema(
@@ -61,6 +61,7 @@ def getEnvSettings(env: str) -> List | SystemExit:
             sf_user=os.environ.get('SF_USER'),
             sf_pass=os.environ.get('SF_PASS'),
             sf_password=os.environ.get('SF_PASSWORD'),
+            sf_enviroment=name_env
         )
 
         auth_settings = AuthSchema(

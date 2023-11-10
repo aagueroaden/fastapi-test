@@ -69,10 +69,10 @@ class OpportunityService:
                 'documentNumber': contact['Numero_de_documento__c']
             }
 
-            mappedOpportunity = mappedOportunityById(opportunity)
-            mappedOpportunity['comercial'] = comercial_for_mapping
-            mappedOpportunity['contact'] = contact_data_for_mapping
-            response = mappedOpportunity
+            response = mappedOportunityById(opportunity)
+            response['comercial'] = comercial_for_mapping
+            response['contact'] = contact_data_for_mapping
+            # response = mappedOpportunity
 
         except HTTPException as e:
             # response = e

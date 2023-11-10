@@ -11,8 +11,8 @@ from app.modules.opportunities.opportunities_service import OpportunityService
 app = FastAPI()
 
 # loading env variables
-env = envArgumentValidation()
-app_settings, salesforce_settings, auth_settings = getEnvSettings(env)
+env, name_env = envArgumentValidation()
+app_settings, salesforce_settings, auth_settings = getEnvSettings(env, name_env)
 
 
 # instance of models
