@@ -65,7 +65,9 @@ def getEnvSettings(env: str, name_env: str) -> List | SystemExit:
         )
 
         gdrive_settings = GoogleDriveSchema(
-            gd_scopes_url=os.environ.get('DRIVE_SCOPE_URL'),
+            gd_scopes_url=[
+                os.environ.get('DRIVE_SCOPE_URL')
+            ],
             gd_folder_id=os.environ.get('DRIVE_FOLDER_ID'),
             gd_client_email=os.environ.get('DRIVE_CLIENT_EMAIL'),
             gd_private_key=os.environ.get('DRIVE_PRIVATE_KEY'),

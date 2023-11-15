@@ -21,7 +21,7 @@ class SalesForceSchema(BaseModel):
 
 
 class GoogleDriveSchema(BaseModel):
-    gd_scopes_url: str
+    gd_scopes_url: list
     gd_folder_id: str
     gd_client_email: str
     gd_private_key: str
