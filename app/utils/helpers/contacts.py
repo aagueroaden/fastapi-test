@@ -1,0 +1,2 @@
+def sliceFullName(fullName):
+    pass

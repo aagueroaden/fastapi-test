@@ -1,4 +1,4 @@
-from simple_salesforce import Salesforce
+from simple_salesforce import Salesforce, SFType
 from fastapi import HTTPException, status
 import requests
 import urllib3
@@ -111,6 +111,26 @@ class SalesForceService:
                 return self.requestHTTP(method, endpoint, data)
             print("maybe salesforce secret is outdated?...")
 
+    # used by the student service module in salesforce nestjs api
+    async def update(self, sobject_name: str, update_objects: list[dict]):
+        """
+        I will test this when i start the development on the student endpoint group
+        """
+        response = {}
+        try:
+            sobject = SFType(
+                object_name=sobject_name,
+                session_id=self.connection.session_id,
+                sf_instance=self.connection.sf_instance,
+            )
+            response = sobject.update(update_objects)
+            response = json.loads(response.data)
+        except HTTPException as error:
+            # response = e
+            response = {'error': error}
+        finally:
+            return response
+
     # does not seem to be used in salesforce nestjs api
     async def find(self):
         pass
@@ -125,11 +145,6 @@ class SalesForceService:
 
     # does not seem to be used in salesforce nestjs api
     async def create(self):
-        pass
-
-    # used by the student service module in salesforce nestjs api
-    async def update(self):
-        "TODO"
         pass
 
     # does not seem to be used in salesforce nestjs api

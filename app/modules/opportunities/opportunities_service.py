@@ -14,11 +14,6 @@ class OpportunityService:
         self._salesforce = salesforce
 
     def find0ne(self, id: str):
-        """
-        if it fails to find the opportunity returns a 404, but if
-        it does not find owner or contacto_principal__c it will not raise 404
-        ¡?
-        """
         response = {}
         try:
             opportunity = self._salesforce.requestHTTP(
@@ -109,7 +104,9 @@ class OpportunityService:
                 )
 
             mappedOpportunity = mappedOportunityById(opportunity)
-            response = {'amount': False} if not mappedOpportunity['amount'] else {'amount': mappedOpportunity['amount']}
+            response = {'amount': False} if not mappedOpportunity['amount'] else {
+                'amount': mappedOpportunity['amount']
+                }
 
         except HTTPException as e:
             # response = e
