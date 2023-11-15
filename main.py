@@ -1,7 +1,9 @@
 import uvicorn
-from fastapi import FastAPI, Form
-from typing import Annotated
-
+from fastapi import FastAPI, Form, File
+from typing import Annotated, List
+import base64
+import json
+from io import BytesIO
 
 from settings import envArgumentValidation, getEnvSettings
 
@@ -45,10 +47,26 @@ async def opportunity_amount(id: str):
 async def login(username: Annotated[str, Form()], password: Annotated[str, Form()]):
     return {"username": username}
 
-# @app.get("/salesforce")
-# async def salesforce():
-#     return {'session_id': salesforce_service.connection.session_id}
 
+@app.post("/contacts/form_inscription/documentation")
+async def form_inscription_documentation(
+        files: List[bytes] = File(),  # this should be first parameter in the post...why? idk!
+        salesforce_id: str = Form(),
+        student_name: str = Form(),
+        ):
+    for file in files:
+        # tmp = open(file, mode='rb')
+        print(file)
+        print("__________________________________________________-")
+        tmp: BytesIO = BytesIO(file)
+        # tmp = base64.b64encode(file)
+        # tmp = tmp.decode('utf-8')
+        print(dir(tmp))
+        print(tmp.getvalue())
+    # folder_name = salesforce_id + "-" + student_name
+    # id = google_drive_service.createFolder(folder_name)
+    # response = google_drive_service.uploadFile(file=file, folderId=id)
+    # return response
 
 # @app.get("/querytest")
 # async def selectdata():
