@@ -1,4 +1,4 @@
-# baseModel verity the type of data on wich the classes are instanciated
+# baseModel vary the type of data on wich the classes are instanciated
 from pydantic import BaseModel
 
 
