@@ -2,7 +2,7 @@ import os
 import sys
 from dotenv import load_dotenv
 import argparse
-from app.schemas.env_schemas import AppSchema, SalesForceSchema, GoogleDriveSchema
+from app.schemas.env_schemas import AppSchema, SalesForceSchema, GoogleDriveSchema, ContactsSchema
 from typing import List
 from app.constants.settings_constants import envOptionsPaths
 
@@ -72,7 +72,11 @@ def getEnvSettings(env: str, name_env: str) -> List | SystemExit:
             gd_client_email=os.environ.get('DRIVE_CLIENT_EMAIL'),
             gd_private_key=os.environ.get('DRIVE_PRIVATE_KEY'),
         )
-        return app_settings, salesforce_settings, gdrive_settings
+
+        contacts_settings = ContactsSchema(
+            url_form=os.environ.get('URL_FORM')
+        )
+        return app_settings, salesforce_settings, gdrive_settings, contacts_settings
 
     except Exception as load_dotenv_error:
         print(f" error creating the settings object: {load_dotenv_error}")

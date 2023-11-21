@@ -9,11 +9,20 @@ from app.constants.contacts_enums import (
     MaritalStatus,
     RH,
 )
+from fastapi import UploadFile, File
 
 
 class FormDocumentsDto(BaseModel):
     salesforce_id: str
     student_name: str
+
+# does not work
+class FormFilesDto(BaseModel):
+    titulo_bachiller: UploadFile = File()
+    documento_identidad: UploadFile = File()
+    foto: UploadFile = File()
+    solicitud_preconvalidacion: UploadFile = File()
+    creditos_universidad: UploadFile = File()
 
 
 class UpdateContactDto(BaseModel):

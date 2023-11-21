@@ -29,3 +29,7 @@ class GoogleDriveSchema(BaseModel):
 
 class AuthSchema(BaseModel):
     auth_salesforce_api_key: str
+
+
+class ContactsSchema(BaseModel):
+    url_form: str
