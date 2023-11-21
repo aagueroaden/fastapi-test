@@ -100,6 +100,7 @@ class SalesForceService:
                 # return response.json()
             else:
                 print(response.status)
+                return json.loads(response.data)
                 return {}
         except HTTPException:
             if response.status == 401:
