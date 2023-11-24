@@ -33,10 +33,11 @@ class MaritalStatus(str, Enum):
     UNION_DE_HECHO = 'Unión de hecho'
 
 
+# Oo == O ; flake8 dosent like a single O as a enum key
 class BloodType(str, Enum):
     A = 'A'
     B = 'B'
-    O = 'O'
+    Oo = 'O'
     AB = 'AB'
 
 

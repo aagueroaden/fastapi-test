@@ -95,13 +95,15 @@ class SalesForceService:
                     status_code=status.HTTP_401_UNAUTHORIZED,
                     detail="invalid auth Token"
                 )
-            if response.status == 200:
+            elif response.status == 200:
                 return json.loads(response.data)
-                # return response.json()
-            else:
-                print(response.status)
-                return json.loads(response.data)
+            elif response.status == 404:
                 return {}
+            else:
+                print(f"salesforce  http response: {response.status}")
+                data = json.loads(response.data)
+                return data
+
         except HTTPException:
             if response.status == 401:
                 print("Reconecting to salesforce...")
