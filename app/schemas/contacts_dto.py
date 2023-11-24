@@ -1,6 +1,6 @@
 from pydantic import BaseModel, EmailStr, Field
 from datetime import date
-from app.constants.contacts_enums import (
+from app.schemas.contacts_enums import (
     BloodType,
     DocumentType,
     Gender,
@@ -15,6 +15,7 @@ from fastapi import UploadFile, File
 class FormDocumentsDto(BaseModel):
     salesforce_id: str
     student_name: str
+
 
 # does not work
 class FormFilesDto(BaseModel):

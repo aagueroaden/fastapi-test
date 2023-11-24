@@ -1,11 +1,19 @@
 from app.modules.salesforce.salesforce_service import SalesForceService
 from app.modules.gdrive.gdrive_service import GoogleDriveService
 from app.schemas.env_schemas import ContactsSchema
-from app.constants.contacts_constants import CONTACTS_SERVICE_CITIZENSHIP
+from app.constants.contacts_constants import (
+    CONTACTS_SERVICE_CITIZENSHIP,
+    CONTACT_SOBJECT,
+    FORMULARIO_INSCRIPCION_SOBJECT,
+    CONTACT_SELECTS_FIELDS_NAMES,
+    KEYS_OF_CONTACT_SELECTS_FIELDS_NAME,
+    KEY_OF_FORM_INSCR_SELECTS_FIELDS_NAME
+)
+
 from fastapi import UploadFile, HTTPException, status
 from typing import List
 import base64
-from app.utils.helpers.contacts import addLabelAndId
+from app.utils.helpers.contacts import getNameAndFields
 
 
 class ContactsService:
@@ -53,8 +61,7 @@ class ContactsService:
         }
 
     def getCountries(self):
-        response: list = []
-
+        response: dict = {}
         try:
             request = self._salesforce.requestHTTP(
                 method='GET',
@@ -64,22 +71,70 @@ class ContactsService:
             if "fields" not in request:
                 raise HTTPException(
                     status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                    detail="there was a problem fetching the countries from salesforce"
+                    detail="there was a problem fetching the countries from salesforce, check endpoint"
                 )
-            fields = request.get("fields")
-            for item in fields:
+            fieldsContact: list = request.get("fields")
+            for item in fieldsContact:
                 if item['name'] == "hed__Citizenship__c":
-                    allIdsAndLabelsofCountries = list(map(addLabelAndId, item['picklistValues']))
-                    response = {'countries': allIdsAndLabelsofCountries}
+                    fieldName, fieldValue = getNameAndFields(
+                        name="hed__Citizenship__c",
+                        item=item,
+                        names_formatted=KEYS_OF_CONTACT_SELECTS_FIELDS_NAME,
+                    )
+                    response[fieldName] = fieldValue
+                    # if already has all the data that it needs, stop looping
                     break
-                else:
-                    continue
 
         except HTTPException as error:
-            response = error
+            response = {'error': f'unexpected error in getCountries: {error}'}
 
         finally:
             return response
 
     def getSelectsField(self):
-        pass
+        response: dict = {}
+        try:
+            contact = self._salesforce.requestHTTP(
+                method='GET',
+                endpoint=CONTACT_SOBJECT,
+                data=''
+            )
+            counter: int = 1
+            fieldsContact: list = contact.get('fields')
+            for item in fieldsContact:
+                if item['name'] in CONTACT_SELECTS_FIELDS_NAMES:
+                    fieldName, fieldValue = getNameAndFields(
+                        name=item['name'],
+                        item=item,
+                        names_formatted=KEYS_OF_CONTACT_SELECTS_FIELDS_NAME
+                    )
+                    response[fieldName] = fieldValue
+
+                    # if already has all the data that it needs, stop looping
+                    counter += 1
+                    if counter == len(KEYS_OF_CONTACT_SELECTS_FIELDS_NAME):
+                        break
+
+            form = self._salesforce.requestHTTP(
+                method='GET',
+                endpoint=FORMULARIO_INSCRIPCION_SOBJECT,
+                data=''
+            )
+
+            fieldsFormInscrip: list = form.get("fields")
+            for item in fieldsFormInscrip:
+                if item['name'] == 'Estado_civil__c':
+                    fieldName, fieldValue = getNameAndFields(
+                        name='Estado_civil__c',
+                        item=item,
+                        names_formatted=KEY_OF_FORM_INSCR_SELECTS_FIELDS_NAME,
+                    )
+                    response[fieldName] = fieldValue
+                    # if already has all the data that it needs, stop looping
+                    break
+
+        except Exception as error:
+            response = {'error': f"unexpected error in getSelectsField: {error}"}
+
+        finally:
+            return response
