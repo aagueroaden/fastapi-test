@@ -34,3 +34,5 @@ KEYS_OF_CONTACT_SELECTS_FIELDS_NAME = {
 KEY_OF_FORM_INSCR_SELECTS_FIELDS_NAME = {
     'Estado_civil__c': 'estado_civil',
 }
+
+PROGRAM_NAME_ADEN_UNI = 'Aden University'

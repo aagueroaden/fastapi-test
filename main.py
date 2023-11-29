@@ -54,7 +54,7 @@ async def opportunity_amount(id: str):
 @app.post("/contacts/form_inscription/documentation", tags=['Contacts'])
 async def uploadDocumentsFormInscription(
         # files: List[UploadFile] = File(
-        #     description="""Files accepted: titulo_bachiller, 
+        #     description="""Files accepted: titulo_bachiller,
         #     documento_identidad, foto, solicitud_preconvalidacion, creditos_universidad"""
         # ),  # this should be first parameter in the post...why? idk!
         titulo_bachiller: UploadFile = File(default=None),
@@ -100,6 +100,15 @@ async def countryFormInscription():
 @app.get("/contacts/utils-selects", tags=['Contacts'])
 async def selectUtilsForm():
     return {'response_data': contacts_service.getSelectsField()}
+
+
+@app.get('/contacts/form_inscription/{id}', tags=['Contacts'])
+async def formInscription(id: str):
+    if not id:
+        return {"response_data": {'error': HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST, detail='No hash given'
+        )}}
+    return {'response_data': contacts_service.getFormInscription(id)}
 
 
 if __name__ == '__main__':
