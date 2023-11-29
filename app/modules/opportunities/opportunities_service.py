@@ -21,6 +21,7 @@ class OpportunityService:
                 endpoint=OPPORTUNITY_SERVICE_ENDPOINT + id,
                 data=''
             )
+
             if not opportunity:
                 raise HTTPException(
                     status_code=status.HTTP_404_NOT_FOUND,
@@ -32,11 +33,12 @@ class OpportunityService:
                 endpoint=USER_SERVICE_ENDPOINT + opportunity["OwnerId"],
                 data=''
             )
-            if not owner:
-                raise HTTPException(
-                    status_code=status.HTTP_404_NOT_FOUND,
-                    detail=f'OwnerId for Opportunity {id}, not found',
-                )
+
+            # if not owner:
+            #     raise HTTPException(
+            #         status_code=status.HTTP_404_NOT_FOUND,
+            #         detail=f'OwnerId for Opportunity {id}, not found',
+            #     )
 
             contact = self._salesforce.requestHTTP(
                 method='GET',
@@ -44,49 +46,37 @@ class OpportunityService:
                 data='',
             )
 
-            if not contact:
-                raise HTTPException(
-                    status_code=status.HTTP_404_NOT_FOUND,
-                    detail=f'Contacto_principal__c for Opportunity {id}, not found',
-                )
-
-            comercial_for_mapping = {
-                'email': owner["Email"],
-                'name': owner["Name"],
-            }
-
-            contact_data_for_mapping = {
-                'email': contact['Email'],
-                'lastName': contact['LastName'],
-                'firstName': contact['FirstName'],
-                'name': contact['Name'],
-                'phone': contact['Phone'],
-                'documentNumber': contact['Numero_de_documento__c']
-            }
+            # if not contact:
+            #     raise HTTPException(
+            #         status_code=status.HTTP_404_NOT_FOUND,
+            #         detail=f'Contacto_principal__c for Opportunity {id}, not found',
+            #     )
 
             response = mappedOportunityById(opportunity)
-            response['comercial'] = comercial_for_mapping
-            response['contact'] = contact_data_for_mapping
+
+            if owner:
+                response['comercial'] = {
+                    'email': owner["Email"],
+                    'name': owner["Name"],
+                }
+
+            if contact:
+                response['contact'] = {
+                    'email': contact['Email'],
+                    'lastName': contact['LastName'],
+                    'firstName': contact['FirstName'],
+                    'name': contact['Name'],
+                    'phone': contact['Phone'],
+                    'documentNumber': contact['Numero_de_documento__c']
+                }
+
             # response = mappedOpportunity
 
         except HTTPException as e:
-            # response = e
             response = {'error': e}
+
         finally:
             return response
-
-    # not used
-    def findOneBySisId(self, id: str):
-        opportunity = self._salesforce.requestHTTP(
-            method='GET',
-            endpoint=OPPORTUNITY_SERVICE_ENDPOINT + id,
-            data=''
-        )
-        if not opportunity:
-            raise HTTPException(
-                status_code=status.HTTP_404_NOT_FOUND,
-                detail='Opportunity not found',
-            )
 
     def findOpportunityAmt(self, id: str):
         response: dict = {}
@@ -109,7 +99,6 @@ class OpportunityService:
                 }
 
         except HTTPException as e:
-            # response = e
             response = {'error': e}
         finally:
             return response
