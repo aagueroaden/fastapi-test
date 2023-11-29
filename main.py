@@ -55,6 +55,7 @@ async def opportunity_amount(id: str):
 async def uploadDocumentsFormInscription(
         # files: List[UploadFile] = File(
         #     description="""Files accepted: titulo_bachiller,
+        #     description="""Files accepted: titulo_bachiller,
         #     documento_identidad, foto, solicitud_preconvalidacion, creditos_universidad"""
         # ),  # this should be first parameter in the post...why? idk!
         titulo_bachiller: UploadFile = File(default=None),
@@ -109,6 +110,16 @@ async def formInscription(id: str):
             status_code=status.HTTP_400_BAD_REQUEST, detail='No hash given'
         )}}
     return {'response_data': contacts_service.getFormInscription(id)}
+
+
+@app.get("/testQUERY/")
+async def test():
+    return salesforce_service.executeQuery(
+        """
+        SELECT Id, AccountId, Programa_acad_mico__c
+        FROM Opportunity
+        """
+    )
 
 
 if __name__ == '__main__':
