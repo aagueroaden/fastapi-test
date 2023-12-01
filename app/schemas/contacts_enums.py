@@ -44,3 +44,8 @@ class BloodType(str, Enum):
 class RH(str, Enum):
     POS = '(+)'
     NEG = '(-)'
+
+
+class EnrollmentStatus(str, Enum):
+    COMPLETE = 'complete'
+    PENDING = 'pending'

@@ -59,20 +59,33 @@ class SalesForceService:
                     consumer_key=self.clientId,
                     consumer_secret=self.clientSecret,
                 )
+
         except Exception as e:
             print(f"Connection ERROR {e}")
             print(f"cannot connect to {self.loginUrl}")
         print(f"connected to {self.loginUrl}")
         return sf_connection
 
-    def executeQuery(self, query: str):
-        response: dict = {}
+    def executeQuery(self, query: str) -> None | list:
+        response = None
         try:
             response = self.connection.query(query)
-        except Exception as e:
+            # bad query input
+            if "totalSize" not in response:
+                raise HTTPException
+
+            # didnt find anything with that query
+            elif response["totalSize"] == 0:
+                response = None
+
+            # find one or more records on the query
+            else:
+                response = response["records"]
+
+        except HTTPException as e:
             print(f"Error in executing the query: \n{e}")
-            response = e
-            raise HTTPException
+            response = None
+
         finally:
             return response
 

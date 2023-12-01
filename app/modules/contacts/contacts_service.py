@@ -9,12 +9,15 @@ from app.constants.contacts_constants import (
     KEYS_OF_CONTACT_SELECTS_FIELDS_NAME,
     KEY_OF_FORM_INSCR_SELECTS_FIELDS_NAME,
     PROGRAM_NAME_ADEN_UNI,
+    FORM_INSC_TYPE
 )
 
 from fastapi import UploadFile, HTTPException, status
 from typing import List
 import base64
 from app.utils.helpers.contacts import getNameAndFields
+from app.utils.salesforce.oportunity_map import mappedPaymentsType
+from app.schemas.contacts_enums import EnrollmentStatus
 
 
 class ContactsService:
@@ -136,12 +139,12 @@ class ContactsService:
         finally:
             return response
 
-    def getFormInscription(self, hashId: str):
+    def getFormInscription(self, hashId: str) -> dict:
+        # response = {}
         try:
             leadId = base64.b64decode(hashId).decode("utf-8")
         except Exception:
             return {'error': f'The hashId provided: {hashId} , is an invalid hashId'}
-        response = {}
         try:
             # search the opportunity
             lead = self._salesforce.executeQuery(
@@ -151,12 +154,16 @@ class ContactsService:
                 WHERE Id = '{leadId}'
                 """
             )
+
             # if it didn't find anyhing with id= leadId
-            if lead["totalSize"] == 0:
+            if not lead:
                 raise HTTPException(
                     status_code=status.HTTP_404_NOT_FOUND,
                     detail=f"Opportunity not found for id {leadId}"
                 )
+
+            # use the ONLY registry that SHOULD EXIST
+            lead: dict = lead[0]
 
             # search the account associated to the opp of id leadId
             account = self._salesforce.executeQuery(
@@ -168,20 +175,24 @@ class ContactsService:
             )
 
             # if it didn't find anything in that account
-            if account["totalSize"] == 0:
+            if not account:
                 raise HTTPException(
                     status_code=status.HTTP_404_NOT_FOUND,
                     detail="Account not found"
                 )
+
+            # use the ONLY registry that SHOULD EXIST
+            account: dict = account[0]
 
             # search the data of the account primary contact
             contact = self._salesforce.executeQuery(
                 f"""
                 SELECT Id, FirstName, LastName, Name, Email, hed__Country_of_Origin__c, Birthdate,
                     hed__Gender__c, Tipo_de_documento__c, Numero_de_documento__c,
-                    Grupo_sangu_neo__c, RH__c, hed__Current_Address__c, Institucion_de_procedencia__c,
-                    hed__AlternateEmail__c, Phone, OtherPhone, Nombre_del_acudiente__c,
-                    Tel_particular_del_acudiente__c, Usuario_de_Instagram__c, Usuario_de_Facebook__c,
+                    Grupo_sangu_neo__c, RH__c, hed__Current_Address__c,
+                    Institucion_de_procedencia__c, hed__AlternateEmail__c, Phone, OtherPhone,
+                    Nombre_del_acudiente__c, Tel_particular_del_acudiente__c,
+                    Usuario_de_Instagram__c, Usuario_de_Facebook__c,
                     Actualmente_se_encuentra_laborando__c, Ocupaci_n_laboral__c, Estado_civil__c,
                     MailingStreet, MailingCity, MailingState, MailingPostalCode
                 FROM Contact
@@ -190,12 +201,16 @@ class ContactsService:
             )
 
             # if it didn't find any contact with that account contact
-            if contact["totalSize"] == 0:
+            if not contact:
                 raise HTTPException(
                     status_code=status.HTTP_404_NOT_FOUND,
-                    detail="Contact not found"
+                    detail="Contact not found, error fetching salesforce contact"
                 )
 
+            # use the ONLY registry that SHOULD EXIST
+            contact: dict = contact[0]
+
+            # check if it has a defined program name, if not, default to aden university
             if lead["Programa_acad_mico__c"]:
                 program = self._salesforce.executeQuery(
                     f"""
@@ -205,18 +220,110 @@ class ContactsService:
                     """
                 )
                 program_name = program["Name"] if program else PROGRAM_NAME_ADEN_UNI
+
             payments = self._salesforce.executeQuery(
                 f"""
-                SELECT Id, Cantidad_de_cuotas__c, CreatedById, Divisa__c, Forma_de_pago__c, Importe__c, Name,
-                    Obtener_link_Forma_de_pago__c, Oportunidad__c, Respuesta_Hash__c, Respuesta_Link__c,
-                    Respuesta_Tipo__c, Total_de_Formas_de_pago__c, LastModifiedById
+                SELECT Id, Cantidad_de_cuotas__c, CreatedById, Divisa__c, Forma_de_pago__c,
+                    Importe__c, Name, Obtener_link_Forma_de_pago__c, Oportunidad__c,
+                    Respuesta_Hash__c, Respuesta_Link__c, Respuesta_Tipo__c,
+                    Total_de_Formas_de_pago__c, LastModifiedById
                 FROM Forma_de_pago__c
                 WHERE Oportunidad__c = '{leadId}'
                 AND Forma_de_pago__c = 'Online - Aden Checkout'
                 """
             )
-        except HTTPException as error:
-            response = error
 
-        finally:
-            return response
+            # rename the keys of all the payments
+            arrPayments: list = [
+                mappedPaymentsType(dict(payment)) for payment in payments
+                ] if payments else []
+
+            # change the value of installment_amount if posible
+            for payment in arrPayments:
+                if payment['qty_installments'] > 0:
+                    payment['installment_amount'] = payment['total_amount'] / payment['qty_installments']
+
+            form_inscription = self._salesforce.executeQuery(
+                f"""
+                SELECT Name
+                FROM Formulario_Inscripci_n__c
+                WHERE Oportunidad__c = '{leadId}'
+                """
+            )
+
+            # inscription is completed
+            if form_inscription:
+                return {
+                    'id': hashId,
+                    'contact_salesforce_id': contact['Id'],
+                    'type': FORM_INSC_TYPE,
+                    'enrrollment_status': EnrollmentStatus.COMPLETE,
+                    'program': program_name,
+                    'arr_payments': arrPayments
+                }
+
+            # inscription isn't completed, is pending
+            else:
+                return {
+                    'id': hashId,
+                    'contact_salesforce_id': contact['Id'],
+                    'type': FORM_INSC_TYPE,
+                    'enrrollment_status': EnrollmentStatus.PENDING,
+                    'program': program_name,
+                    'personal_data': {
+                        'name': contact['Name'],
+                        'first_name': contact['FirstName'],
+                        'last_name': contact['LastName'],
+                        'birthday': contact['Birthdate'],
+                        'gender': contact['hed__Gender__c'],
+                        'identification_type': contact['Tipo_de_documento__c'],
+                        'identification_num': contact['Numero_de_documento__c'],
+                        'maritial_status': contact['Estado_civil__c'],
+                        'blood_type': contact['Grupo_sangu_neo__c'],
+                        'rh': contact['RH__c'],
+                        'country_origin': contact['hed__Country_of_Origin__c'],
+                        'address_residence': contact['MailingStreet'],
+                        # same key as country_origin... why do this?
+                        'country_residence': contact['hed__Country_of_Origin__c'],
+                        'city_residence': contact['MailingCity'],
+                        'zip': contact['MailingPostalCode'],
+                    },
+                    'academic_information': {
+                        'institution_origin': contact['Institucion_de_procedencia__c'],
+                        # these keys does not exist in the Contact Sobject
+                        'high_school_title': contact.get('Titulo_del_colegio_recibido__c'),
+                        'graduation_year': contact.get('A_o_de_graduaci_n__c'),
+                        'graduation_country': contact.get('Pa_s_de_graduaci_n__c'),
+                        'country_indication': contact.get('Indicativo_del_pa_s__c'),
+                    },
+                    'contact_information': {
+                        'email': contact['Email'],
+                        'alternative_email': contact['hed__AlternateEmail__c'],
+                        'phone': contact['Phone'],
+                        'alternative_phone': contact['OtherPhone'],
+                        'attendant_name': contact['Nombre_del_acudiente__c'],
+                        'attendant_phone': contact['Tel_particular_del_acudiente__c'],
+                        'instagram': contact['Usuario_de_Instagram__c'],
+                        'facebook': contact['Usuario_de_Facebook__c'],
+                    },
+                    'job_information': {
+                        'has_job': contact['Actualmente_se_encuentra_laborando__c'],
+                        'job_ocupation': contact['Ocupaci_n_laboral__c'],
+                    },
+                    'documentation': {
+                        'photocopy_title': '',
+                        'photoBgWhite': '',
+                        'photocopy_document': '',
+                        'has_preconvalidation': '',
+                        'format_preconvalidation': '',
+                        'photocopy_credits': '',
+                    },
+                    'arr_payments': arrPayments
+                }
+
+        except HTTPException as error:
+            print(f"error at getFormInscription {error}")
+            return {'error': error}
+
+        # finally:
+        #     return response

@@ -53,11 +53,7 @@ async def opportunity_amount(id: str):
 
 @app.post("/contacts/form_inscription/documentation", tags=['Contacts'])
 async def uploadDocumentsFormInscription(
-        # files: List[UploadFile] = File(
-        #     description="""Files accepted: titulo_bachiller,
-        #     description="""Files accepted: titulo_bachiller,
-        #     documento_identidad, foto, solicitud_preconvalidacion, creditos_universidad"""
-        # ),  # this should be first parameter in the post...why? idk!
+        # Files should be first parameter in the post...why? idk!
         titulo_bachiller: UploadFile = File(default=None),
         documento_identidad: UploadFile = File(default=None),
         solicitud_preconvalidacion: UploadFile = File(default=None),

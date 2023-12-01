@@ -36,3 +36,5 @@ KEY_OF_FORM_INSCR_SELECTS_FIELDS_NAME = {
 }
 
 PROGRAM_NAME_ADEN_UNI = 'Aden University'
+
+FORM_INSC_TYPE = 'adenupa'
