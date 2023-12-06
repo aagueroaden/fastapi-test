@@ -23,7 +23,7 @@ class GoogleDriveService:
         self._scopes_url: list[str] = settingsDrive.gd_scopes_url
         self._folder_id: str = settingsDrive.gd_folder_id
         self._client_email: str = settingsDrive.gd_client_email
-        self._private_key: str = settingsDrive.gd_private_key
+        # self._private_key: str = settingsDrive.gd_private_key
         # self.credentials: service_account.Credentials = self._load_credentials()
         # self.drive = self._connect()
         self.credentials = service_account.Credentials.from_service_account_file(
