@@ -8,6 +8,7 @@ from app.modules.opportunities.opportunities_service import OpportunityService
 from app.modules.gdrive.gdrive_service import GoogleDriveService
 from app.modules.contacts.contacts_service import ContactsService
 from app.constants.contacts_constants import ADD_ONE_FILE
+from app.schemas.contacts_dto import UpdateContactDto
 
 
 # loading env variables
@@ -108,14 +109,33 @@ async def formInscription(id: str):
     return {'response_data': contacts_service.getFormInscription(id)}
 
 
-@app.get("/testQUERY/")
-async def test():
-    return salesforce_service.executeQuery(
-        """
-        SELECT Id, AccountId, Programa_acad_mico__c
-        FROM Opportunity
-        """
-    )
+@app.patch('/contacts/form_inscription/{id}', tags=['Contacts'])
+async def updateformInscription(id: str, updateContact: UpdateContactDto):
+    return {
+        'response_data': contacts_service.updateformInscription(
+            hashId=id,
+            contactToUpdate=updateContact
+        )
+    }
+
+# TESTING FOR DTO AND VALIDATIONS WITH PYDANTIC
+# from pydantic import BaseModel
+# class Test(BaseModel):
+#     esto_es_un_bool: bool = False
+#     esto_es_un_string: str
+#     interno: int
+
+#     class Config:
+#         json_schema_extra = {
+#             'example': {
+#                 'esto_es_un_bool': False,
+#                 'esto_es_un_string': 'esto es un string',
+#                 'interno': 12
+#             },
+#         }
+# @app.put('/testing')
+# async def test(data: Test):
+#     return data
 
 
 if __name__ == '__main__':

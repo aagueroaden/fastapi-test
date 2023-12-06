@@ -88,6 +88,7 @@ class GoogleDriveService:
                 fh,
                 resumable=True,
                 mimetype=file.headers['content-type'])
+            # id=id_of_file, name=name_of_file, mimetype=type_of_file
             response = self.drive.files().create(
                 body=fileMetadata,
                 fields='id, name, mimeType',

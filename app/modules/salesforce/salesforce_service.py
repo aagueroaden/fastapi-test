@@ -91,7 +91,7 @@ class SalesForceService:
 
     def requestHTTP(self, method: str, endpoint: str, data: str | object):
         """
-        method = 'GET' | 'POST' | etc...
+        method = 'GET' | 'POST' | etc... BUT NOT PUT
         endpoint = some endpoint url
         data = an object of some kind | empty string if you wanna make a GET
         """
@@ -113,7 +113,7 @@ class SalesForceService:
             elif response.status == 404:
                 return {}
             else:
-                print(f"salesforce  http response: {response.status}")
+                print(f"salesforce  http response status: {response.status}")
                 data = json.loads(response.data)
                 return data
 
@@ -127,23 +127,20 @@ class SalesForceService:
                 return self.requestHTTP(method, endpoint, data)
             print("maybe salesforce secret is outdated?...")
 
-    # used by the student service module in salesforce nestjs api
-    async def update(self, sobject_name: str, update_objects: list[dict]):
-        """
-        I will test this when i start the development on the student endpoint group
-        """
+    def update(self, sobjectName: str, idObject: str, fields_to_updated: dict):
         response = {}
         try:
             sobject = SFType(
-                object_name=sobject_name,
-                session_id=self.connection.session_id,
-                sf_instance=self.connection.sf_instance,
+                sobjectName,
+                self.connection.session_id,
+                self.connection.sf_instance
             )
-            response = sobject.update(update_objects)
-            response = json.loads(response.data)
-        except HTTPException as error:
-            # response = e
-            response = {'error': error}
+            response = sobject.update(
+                idObject,
+                fields_to_updated,
+            )
+        except Exception:
+            response = {}
         finally:
             return response
 

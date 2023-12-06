@@ -1,9 +1,10 @@
 ADD_ONE_FILE = "Add at least one file of: titulo_bachiller, documento_identidad, foto, solicitud_preconvalidacion, creditos_universidad"
-
+GET_COUNTRIES_ERROR_MSG = "there was a problem fetching the countries from salesforce, check endpoint"
 
 # endpoints
 CONTACT_SOBJECT = '/services/data/v53.0/sobjects/Contact/describe/'
 FORMULARIO_INSCRIPCION_SOBJECT = '/services/data/v53.0/sobjects/Formulario_Inscripci_n__c/describe/'
+UPDATE_FORM_INSCRIPTION = '/services/data/v53.0/sobjects/Formulario_Inscripci_n__c/Id_externo__c/'
 
 # this endpoint returns the same as /services/data/v53.0/sobjects/Contact/describe/
 CONTACTS_SERVICE_CITIZENSHIP = '/services/data/v53.0/sobjects/Contact/describe/?fields=hed__Citizenship__c'
