@@ -15,8 +15,6 @@ http = urllib3.PoolManager()
 class SalesForceService:
 
     def __init__(self, settingsSF: SalesForceSchema) -> None:
-        # self.userId: str = userId
-        # self.orgId: str = orgId
         self.clientId: str = settingsSF.sf_client_id
         self.clientSecret: str = settingsSF.sf_client_secret
         self.redirectUri: str = settingsSF.sf_redirect_uri
@@ -24,11 +22,10 @@ class SalesForceService:
         self.user: str = settingsSF.sf_user
         self.password: str = settingsSF.sf_password
         self.sf_enviroment: str = settingsSF.sf_enviroment
-        if not instanceConnection:
-            self.connection: Salesforce = self._connect()
+        self.connection: Salesforce = self._connect()
 
     # does not use any library except request, just returns the token
-    def connectPrimitive(self):
+    def _connectPrimitive(self):
         payload = {
             'client_id': self.clientId,
             'client_secret': self.clientSecret,
@@ -42,10 +39,10 @@ class SalesForceService:
         access_token = json_res['access_token']
         return access_token
 
-    def _connect(self):
+    async def _connect(self):
         try:
             if self.sf_enviroment == 'test' or self.sf_enviroment == 'dev':
-                sf_connection = Salesforce(
+                sf_connection = await Salesforce(
                     username=self.user,
                     password=self.password,
                     consumer_key=self.clientId,
@@ -53,7 +50,7 @@ class SalesForceService:
                     domain='test',  # This parameter allows the connection to the sandbox
                 )
             elif self.sf_enviroment == 'prod':
-                sf_connection = Salesforce(
+                sf_connection = await Salesforce(
                     username=self.user,
                     password=self.password,
                     consumer_key=self.clientId,
@@ -110,7 +107,7 @@ class SalesForceService:
                 )
             elif response.status == 200:
                 return json.loads(response.data)
-            elif response.status == 404:
+            elif response.status in [404, 400]:
                 return {}
             else:
                 print(f"salesforce  http response status: {response.status}")

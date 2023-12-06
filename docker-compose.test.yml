@@ -1,12 +1,17 @@
 version: '3'
 services:
   salesforce_fastapi_adenuniversity_edu_pa:
+    env_file:
+      - stage.test.env
+    # environment:
+    #   - APP_PORT=${APP_PORT}
+
     build:
       context: .
       dockerfile:
-        Dockerfile.test
+        ./Dockerfile.test
     ports:
-      - "9000:9000"
+      - 9000:9000
     restart: on-failure
     container_name: salesforce_fastapi_adenuniversity_edu_pa
-    image: salesforce_fastapi_adenuniversity_edu_pa
+    image: salesforce_fastapi_adenuniversity_edu_pa:test_v1

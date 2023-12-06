@@ -7,6 +7,5 @@ RUN pip3 install -r requirements.txt
 
 COPY . /salesforce_fastapi/
 
-EXPOSE 9000
 
-CMD ["python", "main.py", "-e", "prod"]
+CMD ["python", "main.py"]

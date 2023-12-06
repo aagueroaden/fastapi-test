@@ -18,12 +18,24 @@ docker build -f [Dockerfile-file-that-you-want-to-build] -t [the-pod-name] [path
 
 Run the docker image
 ```sh
-docker run -it -p [9000:9000] [the-pod-name]
+docker run -it -p [9000:9000] [the-pod-name] -e [ENV_VARIABLE_NAME]=[ENV_VARIABLE_VALUE]
 ```
 
-ports `9000` are in the proyect itself, if you change it to another, use that port instead, but change the dockerfile and env variables also
+ports `9000` are in the proyect itself, if you change it to another, use that port instead, but change the  env variable `APP_PORT`.
+
+you need to add a `-e` for each env variable
+
+## Start your proyect in docker-compose
+
+build and run the docker-compose
+```sh
+docker-compose -f [Docker-compose-file.yml] up -d --build
+```
+`docker-compose-file.test.yml` start with the credentials of `test`
+`docker-compose-file.prod.yml` start with the credentials of `prod`
 
 ## Local
+export all enviroment variables to your terminal or shell
 
 in a virtual enviroment in python3.10,
 
@@ -33,7 +45,7 @@ pip3 install -r requirements.txt
 ```
 run
 ```sh
-python3 main.py -e [enviroment]
+python3 main.py
 ```
 
 ## Test

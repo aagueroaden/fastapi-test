@@ -1,27 +1,46 @@
 import uvicorn
 from fastapi import FastAPI, Form, File, UploadFile, HTTPException, status
-
-from settings import envArgumentValidation, getEnvSettings
-
 from app.modules.salesforce.salesforce_service import SalesForceService
 from app.modules.opportunities.opportunities_service import OpportunityService
 from app.modules.gdrive.gdrive_service import GoogleDriveService
 from app.modules.contacts.contacts_service import ContactsService
 from app.constants.contacts_constants import ADD_ONE_FILE
 from app.schemas.contacts_dto import UpdateContactDto
+from app.schemas.env_schemas import AppSchema, SalesForceSchema, GoogleDriveSchema, ContactsSchema
+import os
 
 
-# loading env variables
-env, name_env = envArgumentValidation()
-[
-    app_settings,
-    salesforce_settings,
-    gdrive_settings,
-    contacts_settings
-] = getEnvSettings(env, name_env)
+app_settings = AppSchema(
+    port=int(os.environ.get('APP_PORT')),
+    host=os.environ.get('APP_HOST'),
+    name_env=os.environ.get('NAME_ENV')
+)
 
+salesforce_settings = SalesForceSchema(
+    sf_client_id=os.environ.get('SF_CLIENT_ID'),
+    sf_client_secret=os.environ.get('SF_CLIENT_SECRET'),
+    sf_redirect_uri=os.environ.get('SF_REDIRECT_URI'),
+    sf_login_url=os.environ.get('SF_LOGIN_URL'),
+    sf_user=os.environ.get('SF_USER'),
+    sf_pass=os.environ.get('SF_PASS'),
+    sf_password=os.environ.get('SF_PASSWORD'),
+    sf_enviroment=os.environ.get('NAME_ENV')
+)
 
-# instance of models
+gdrive_settings = GoogleDriveSchema(
+    gd_scopes_url=[
+        os.environ.get('DRIVE_SCOPE_URL')
+    ],
+    gd_folder_id=os.environ.get('DRIVE_FOLDER_ID'),
+    gd_client_email=os.environ.get('DRIVE_CLIENT_EMAIL'),
+    # gd_private_key=os.environ.get('DRIVE_PRIVATE_KEY'),
+)
+
+contacts_settings = ContactsSchema(
+    url_form=os.environ.get('URL_FORM')
+)
+
+# instance of modules
 salesforce_service = SalesForceService(salesforce_settings)
 opportunity_service = OpportunityService(salesforce_service)
 google_drive_service = GoogleDriveService(gdrive_settings)
