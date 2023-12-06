@@ -1,5 +1,14 @@
-def sliceFullName(fullName):
-    pass
+def sliceFullName(fullName: str) -> list[str]:
+    """example:
+    fullName = "Jhon Smith"     -> firstName="Jhon" , lastName="Smith"
+    fullName = "Jhon Doe Smith" -> firstName="Jhon" , lastName="Doe Smith"
+    fullName = "Jhon"           -> firstName="Jhon" , lastName=""
+    fullName = ""               -> firstName=""     , lastName=""
+    """
+    fullNameArray: list = fullName.split(' ')
+    firstName: str = fullNameArray[0]
+    lastName: str = ' '.join(fullNameArray[1:])
+    return [firstName, lastName]
 
 
 def addLabelAndId(pickListValues: dict):

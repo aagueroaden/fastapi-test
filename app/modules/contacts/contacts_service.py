@@ -9,15 +9,17 @@ from app.constants.contacts_constants import (
     KEYS_OF_CONTACT_SELECTS_FIELDS_NAME,
     KEY_OF_FORM_INSCR_SELECTS_FIELDS_NAME,
     PROGRAM_NAME_ADEN_UNI,
-    FORM_INSC_TYPE
+    FORM_INSC_TYPE,
+    GET_COUNTRIES_ERROR_MSG,
 )
 
 from fastapi import UploadFile, HTTPException, status
 from typing import List
 import base64
-from app.utils.helpers.contacts import getNameAndFields
+from app.utils.helpers.contacts import getNameAndFields, sliceFullName
 from app.utils.salesforce.oportunity_map import mappedPaymentsType
 from app.schemas.contacts_enums import EnrollmentStatus
+from app.schemas.contacts_dto import UpdateContactDto
 
 
 class ContactsService:
@@ -71,7 +73,7 @@ class ContactsService:
             if "fields" not in request:
                 raise HTTPException(
                     status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-                    detail="there was a problem fetching the countries from salesforce, check endpoint"
+                    detail=GET_COUNTRIES_ERROR_MSG
                 )
             fieldsContact: list = request.get("fields")
             for item in fieldsContact:
@@ -219,7 +221,7 @@ class ContactsService:
                     WHERE Id = '{lead["Programa_acad_mico__c"]}'
                     """
                 )
-                program_name = program["Name"] if program else PROGRAM_NAME_ADEN_UNI
+                program_name = program[0]["Name"] if program else PROGRAM_NAME_ADEN_UNI
 
             payments = self._salesforce.executeQuery(
                 f"""
@@ -241,7 +243,9 @@ class ContactsService:
             # change the value of installment_amount if posible
             for payment in arrPayments:
                 if payment['qty_installments'] > 0:
-                    payment['installment_amount'] = payment['total_amount'] / payment['qty_installments']
+                    payment[
+                        'installment_amount'
+                        ]: float = payment['total_amount'] / payment['qty_installments']
 
             form_inscription = self._salesforce.executeQuery(
                 f"""
@@ -290,7 +294,12 @@ class ContactsService:
                     },
                     'academic_information': {
                         'institution_origin': contact['Institucion_de_procedencia__c'],
-                        # these keys does not exist in the Contact Sobject
+                        # high_school_title, graduation_year, graduation_country and
+                        # country_indication:
+                        # these keys does not exist in the "Contact" Sobject, they exist in the
+                        # "Formulario_Inscripci_n__c", but here(the else statement) only access
+                        # if the form inscription is not completed, hence, the opportunity does
+                        # not exist in Formulario_Inscripci_n__c sobject, they always be null
                         'high_school_title': contact.get('Titulo_del_colegio_recibido__c'),
                         'graduation_year': contact.get('A_o_de_graduaci_n__c'),
                         'graduation_country': contact.get('Pa_s_de_graduaci_n__c'),
@@ -327,3 +336,81 @@ class ContactsService:
 
         # finally:
         #     return response
+
+    def updateformInscription(self, hashId: str, contactToUpdate: UpdateContactDto):
+        try:
+            FormId = base64.b64decode(hashId).decode("utf-8")
+        except Exception:
+            return {'error': f'The hashId provided: {hashId} , is an invalid hashId'}
+        try:
+            contactToUpdate.zip = str(contactToUpdate.zip) if contactToUpdate.zip else None
+            has_job = 'Sí' if contactToUpdate.has_job else 'No'
+            attendantFirstName, attendantLastName = sliceFullName(contactToUpdate.attendant_name)
+            timeInISOFormat = str(contactToUpdate.birthday.isoformat()).replace('+00:00', 'Z')
+            data: dict = {
+                'Nombre__c': contactToUpdate.first_name,
+                'Apellidos__c': contactToUpdate.last_name,
+                'Fecha_de_nacimiento__c': timeInISOFormat,
+                'G_nero__c': contactToUpdate.gender.value,
+                'Tipo_de_documento_de_identidad__c': contactToUpdate.identification_type.value,
+                'N_mero_de_documento_de_identidad__c': contactToUpdate.identification_num,
+                'Estado_civil__c': contactToUpdate.maritial_status.value,
+                'Grupo_sangu_neo__c': contactToUpdate.blood_type.value,
+                'RH__c': contactToUpdate.rh.value,
+                'Pais_de_procedencia__c': contactToUpdate.country_origin,
+                'Direcci_n_de_residencia__c': contactToUpdate.address_residence,
+                'Ciudad_de_residencia__c': contactToUpdate.city_residence,
+                'Pa_s_de_residencia__c': contactToUpdate.country_residence,
+                'C_digo_postal__c': contactToUpdate.zip,
+                'Titulo_del_colegio_recibido__c': contactToUpdate.high_school_title,
+                'Instituci_n_de_procedencia_texto__c': contactToUpdate.institution_origin,
+                'A_o_de_graduaci_n__c': contactToUpdate.graduation_year,
+                'Pa_s_de_graduaci_n__c': contactToUpdate.graduation_country,
+                'Indicativo_del_pa_s__c': contactToUpdate.country_indication,
+                'Correo_electr_nico_Personal__c': contactToUpdate.email,
+                'Correo_electr_nico_Alterno__c': contactToUpdate.alternative_email,
+                'Tel_fono_particular__c': contactToUpdate.phone,
+                'Telef_no_Alterno__c': contactToUpdate.alternative_phone,
+
+                'Nombre_del_acudiente__c': attendantFirstName,  # variable
+                'Apellido_del_acudiente__c': attendantLastName,  # variable
+
+                'Tel_particular_del_acudiente__c': contactToUpdate.attendant_phone,
+                'Usuario_de_Instagram__c': contactToUpdate.instagram,
+                'Usuario_de_Facebook__c': contactToUpdate.facebook,
+
+                'Actualmente_se_encuentra_laborando__c': has_job,  # variable
+
+                'Ocupaci_n_laboral__c': contactToUpdate.job_ocupation.value,
+                'Hace_preconvalidaci_n__c': contactToUpdate.has_preconvalidation.value,
+
+                # these fields wont store files, it will store the same value,
+                # an url to a google drive folder. "Fotocopia_de_documento_de_identidad__c"
+                # "Foto_fondo_blanco__c" and "Fotocopia_de_Titulo_de_Bachiller__c" are most used
+                'Fotocopia_de_Titulo_de_Bachiller__c': contactToUpdate.photocopy_title,  # FILE?
+                'Foto_fondo_blanco__c': contactToUpdate.photo_bg_white,  # FILE?
+                'Fotocopia_de_documento_de_identidad__c':
+                    contactToUpdate.photocopy_document,  # FILE?
+                'Formato_de_solicitud_de_preconvalidaci_n__c':
+                    contactToUpdate.format_preconvalidation,  # FILE?
+                'Fotocopia_de_creditos_de_la_universidad__c':
+                    contactToUpdate.photocopy_credits,  # FILE?
+
+                'Acepta_t_rminos_y_condiciones__c': True,  # hardcoded
+                'Acepta_pol_ticas__c': True,  # hardcoded
+                'Acepta_el_contrato_de_estudios__c': True,  # hardcoded
+            }
+            response = self._salesforce.update(
+                sobjectName='Formulario_Inscripci_n__c',
+                idObject=FormId,
+                fields_to_updated=data
+            )
+            if not response:
+                raise HTTPException(
+                    status_code=status.HTTP_400_BAD_REQUEST,
+                    detail=f'Could not update the Sobject {hashId}, an error in the data or Id'
+                )
+            else:
+                return data
+        except HTTPException as error:
+            return {'error': error}
