@@ -1,5 +1,5 @@
 # baseModel vary the type of data on wich the classes are instanciated
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 
 
 class AppSchema(BaseModel):
@@ -33,3 +33,11 @@ class AuthSchema(BaseModel):
 
 class ContactsSchema(BaseModel):
     url_form: str
+
+
+class MysqlAdenFormsSchema(BaseModel):
+    mysql_host: str
+    mysql_port: int
+    mysql_user: str
+    mysql_password: str = Field(default='')
+    mysql_db: str

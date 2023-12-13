@@ -3,9 +3,13 @@ this is a repo for the salesforce_fastapi proyect
 It connects to salesforce and odoo mainly, but also has connections to google drive, facebook and mails
 
 for the connection to salesforce, uses: `simple-salesforce`
+
 for the connection to odoo, uses: `TODO`
+
 for the connection to googledrive, uses: `googleapiclient`
+
 for the connection to facebook, uses: `TODO`
+
 for the connection to mails, uses: `TODO`
 
 ## Start the proyect in docker
@@ -32,6 +36,7 @@ build and run the docker-compose
 docker-compose -f [Docker-compose-file.yml] up -d --build
 ```
 `docker-compose-file.test.yml` start with the credentials of `test`
+
 `docker-compose-file.prod.yml` start with the credentials of `prod`
 
 ## Local

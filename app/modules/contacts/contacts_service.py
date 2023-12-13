@@ -337,16 +337,18 @@ class ContactsService:
         # finally:
         #     return response
 
-    def updateformInscription(self, hashId: str, contactToUpdate: UpdateContactDto):
-        try:
-            FormId = base64.b64decode(hashId).decode("utf-8")
-        except Exception:
-            return {'error': f'The hashId provided: {hashId} , is an invalid hashId'}
+    def updateformInscription(self, formId: str, contactToUpdate: UpdateContactDto):
+        # if you pass the hashedId directly, need to be decoded
+        # try:
+        #    formId = base64.b64decode(formId).decode("utf-8")
+        # except Exception:
+        #    raise {'error': f'The hashId provided: {formId} , is an invalid hashId'}
         try:
             contactToUpdate.zip = str(contactToUpdate.zip) if contactToUpdate.zip else None
             has_job = 'Sí' if contactToUpdate.has_job else 'No'
             attendantFirstName, attendantLastName = sliceFullName(contactToUpdate.attendant_name)
             timeInISOFormat = str(contactToUpdate.birthday.isoformat()).replace('+00:00', 'Z')
+
             data: dict = {
                 'Nombre__c': contactToUpdate.first_name,
                 'Apellidos__c': contactToUpdate.last_name,
@@ -402,15 +404,25 @@ class ContactsService:
             }
             response = self._salesforce.update(
                 sobjectName='Formulario_Inscripci_n__c',
-                idObject=FormId,
+                idObject=formId,
                 fields_to_updated=data
             )
             if not response:
                 raise HTTPException(
                     status_code=status.HTTP_400_BAD_REQUEST,
-                    detail=f'Could not update the Sobject {hashId}, an error in the data or Id'
+                    detail=f'Could not update the Sobject {formId}, an error in the data or Id'
                 )
             else:
                 return data
         except HTTPException as error:
             return {'error': error}
+
+    def decodeHashedIdtoSfId(self, hashId) -> dict:
+        """
+        return the decoded Id as a string or a error in dict format
+        """
+        try:
+            Id = base64.b64decode(hashId).decode("utf-8")
+            return {'id': Id}
+        except Exception:
+            return {'error': f'The hashId provided: {hashId} , is an invalid hashId'}

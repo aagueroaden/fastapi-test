@@ -6,9 +6,16 @@ from app.modules.gdrive.gdrive_service import GoogleDriveService
 from app.modules.contacts.contacts_service import ContactsService
 from app.constants.contacts_constants import ADD_ONE_FILE
 from app.schemas.contacts_dto import UpdateContactDto
-from app.schemas.env_schemas import AppSchema, SalesForceSchema, GoogleDriveSchema, ContactsSchema
+from app.schemas.landing_dto import CreateLandingDto
+from app.schemas.env_schemas import (
+    AppSchema,
+    SalesForceSchema,
+    GoogleDriveSchema,
+    ContactsSchema,
+    MysqlAdenFormsSchema
+)
 import os
-
+import sys
 
 app_settings = AppSchema(
     port=int(os.environ.get('APP_PORT')),
@@ -28,9 +35,7 @@ salesforce_settings = SalesForceSchema(
 )
 
 gdrive_settings = GoogleDriveSchema(
-    gd_scopes_url=[
-        os.environ.get('DRIVE_SCOPE_URL')
-    ],
+    gd_scopes_url=[os.environ.get('DRIVE_SCOPE_URL')],
     gd_folder_id=os.environ.get('DRIVE_FOLDER_ID'),
     gd_client_email=os.environ.get('DRIVE_CLIENT_EMAIL'),
     # gd_private_key=os.environ.get('DRIVE_PRIVATE_KEY'),
@@ -40,8 +45,21 @@ contacts_settings = ContactsSchema(
     url_form=os.environ.get('URL_FORM')
 )
 
+mysql_aden_form_settings = MysqlAdenFormsSchema(
+    mysql_host=os.environ.get('MYSQL_HOST'),
+    mysql_port=int(os.environ.get('MYSQL_PORT')),
+    mysql_user=os.environ.get('MYSQL_USER'),
+    mysql_password=os.environ.get('MYSQL_PASSWORD'),
+    mysql_db=os.environ.get('MYSQL_DB')
+)
+
 # instance of modules
 salesforce_service = SalesForceService(salesforce_settings)
+
+# could not connect to the salesforce instance, exit program
+if not salesforce_service.connection:
+    sys.exit()
+
 opportunity_service = OpportunityService(salesforce_service)
 google_drive_service = GoogleDriveService(gdrive_settings)
 contacts_service = ContactsService(
@@ -125,17 +143,28 @@ async def formInscription(id: str):
         return {"response_data": {'error': HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST, detail='No hash given'
         )}}
-    return {'response_data': contacts_service.getFormInscription(id)}
+    return {'response_data': contacts_service.getFormInscription(hashId=id)}
 
 
 @app.patch('/contacts/form_inscription/{id}', tags=['Contacts'])
 async def updateformInscription(id: str, updateContact: UpdateContactDto):
+    decodedId = contacts_service.decodeHashedIdtoSfId(hashId=id)
+    if 'error' in decodedId:
+        raise HTTPException(
+            detail=decodedId.get('error'),
+            status_code=status.HTTP_400_BAD_REQUEST
+        )
     return {
         'response_data': contacts_service.updateformInscription(
-            hashId=id,
+            formId=decodedId.get('id'),
             contactToUpdate=updateContact
         )
     }
+
+
+@app.post('/landings', tags=['Landings'])
+async def create(createLanding: CreateLandingDto):
+    pass
 
 # TESTING FOR DTO AND VALIDATIONS WITH PYDANTIC
 # from pydantic import BaseModel

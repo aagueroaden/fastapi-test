@@ -6,7 +6,6 @@ import json
 from app.schemas.env_schemas import SalesForceSchema
 token: str = ''
 url: str = ''
-
 # singleton?
 instanceConnection: bool = False
 http = urllib3.PoolManager()
@@ -22,7 +21,7 @@ class SalesForceService:
         self.user: str = settingsSF.sf_user
         self.password: str = settingsSF.sf_password
         self.sf_enviroment: str = settingsSF.sf_enviroment
-        self.connection: Salesforce = self._connect()
+        self.connection: Salesforce | None = self._connect()
 
     # does not use any library except request, just returns the token
     def _connectPrimitive(self):
@@ -39,10 +38,10 @@ class SalesForceService:
         access_token = json_res['access_token']
         return access_token
 
-    async def _connect(self):
+    def _connect(self):
         try:
             if self.sf_enviroment == 'test' or self.sf_enviroment == 'dev':
-                sf_connection = await Salesforce(
+                sf_connection = Salesforce(
                     username=self.user,
                     password=self.password,
                     consumer_key=self.clientId,
@@ -50,18 +49,19 @@ class SalesForceService:
                     domain='test',  # This parameter allows the connection to the sandbox
                 )
             elif self.sf_enviroment == 'prod':
-                sf_connection = await Salesforce(
+                sf_connection = Salesforce(
                     username=self.user,
                     password=self.password,
                     consumer_key=self.clientId,
                     consumer_secret=self.clientSecret,
                 )
+            print(f"connected to {self.loginUrl}")
+            return sf_connection
 
         except Exception as e:
             print(f"Connection ERROR {e}")
-            print(f"cannot connect to {self.loginUrl}")
-        print(f"connected to {self.loginUrl}")
-        return sf_connection
+            print(f"cannot connect to {self.loginUrl}, check credentials")
+            return None
 
     def executeQuery(self, query: str) -> None | list:
         response = None
