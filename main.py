@@ -4,6 +4,8 @@ from app.modules.salesforce.salesforce_service import SalesForceService
 from app.modules.opportunities.opportunities_service import OpportunityService
 from app.modules.gdrive.gdrive_service import GoogleDriveService
 from app.modules.contacts.contacts_service import ContactsService
+from app.modules.database.database_aden_forms import AdenForms
+from app.modules.landings.landings_service import LandingService
 from app.constants.contacts_constants import ADD_ONE_FILE
 from app.schemas.contacts_dto import UpdateContactDto
 from app.schemas.landing_dto import CreateLandingDto
@@ -54,19 +56,29 @@ mysql_aden_form_settings = MysqlAdenFormsSchema(
 )
 
 # instance of modules
-salesforce_service = SalesForceService(salesforce_settings)
-
 # could not connect to the salesforce instance, exit program
+salesforce_service = SalesForceService(salesforce_settings)
 if not salesforce_service.connection:
     sys.exit()
 
+# Opportunity instances
 opportunity_service = OpportunityService(salesforce_service)
+
+# Contact instaces
 google_drive_service = GoogleDriveService(gdrive_settings)
 contacts_service = ContactsService(
     contacts_settings=contacts_settings,
     google_drive=google_drive_service,
     salesforce=salesforce_service
 )
+
+# Landing instances
+aden_forms_service = AdenForms(mysql_aden_form_settings)
+landing_service = LandingService(
+    aden_forms=aden_forms_service,
+    salesforce=salesforce_service
+)
+
 
 # instance of fastapi
 app = FastAPI()
@@ -99,7 +111,7 @@ async def uploadDocumentsFormInscription(
         foto: UploadFile = File(default=None),
         salesforce_id: str = Form(),
         student_name: str = Form(),
-        ):
+):
     # did it like this to specify the files required
     files = [
         titulo_bachiller,
@@ -164,26 +176,11 @@ async def updateformInscription(id: str, updateContact: UpdateContactDto):
 
 @app.post('/landings', tags=['Landings'])
 async def create(createLanding: CreateLandingDto):
-    pass
-
-# TESTING FOR DTO AND VALIDATIONS WITH PYDANTIC
-# from pydantic import BaseModel
-# class Test(BaseModel):
-#     esto_es_un_bool: bool = False
-#     esto_es_un_string: str
-#     interno: int
-
-#     class Config:
-#         json_schema_extra = {
-#             'example': {
-#                 'esto_es_un_bool': False,
-#                 'esto_es_un_string': 'esto es un string',
-#                 'interno': 12
-#             },
-#         }
-# @app.put('/testing')
-# async def test(data: Test):
-#     return data
+    return {
+        'response_data': landing_service.findOneInteresadoLanding(
+            createLanding=createLanding
+        )
+    }
 
 
 if __name__ == '__main__':

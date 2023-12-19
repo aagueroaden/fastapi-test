@@ -9,7 +9,7 @@ class CreateLandingDto(BaseModel):
     particular:  EmailStr
     telefono: str = Field(min_length=1)
     ciudad: str | None = Field(
-        description='The city must null or not send this parameter',
+        description='The city must be null or not send this parameter',
         default=None
     )
     pais: str = Field(min_length=1)
@@ -21,7 +21,8 @@ class CreateLandingDto(BaseModel):
     utm_source: str = Field(min_length=1)
     anio: int | None = Field(ge=1950, le=3000, default=None)
     mes: int | None = Field(ge=1, le=12, default=None)
-    dia: int | None = Field(ge=1, le=31, default=None)  # wow this is really inconsistent!
+    # wow this is really inconsistent way of handling days!
+    dia: int | None = Field(ge=1, le=31, default=None)
     nombre_referidor: str | None = None
     apellido_referidor: str | None = None
     particular_referidor: EmailStr | None = None
