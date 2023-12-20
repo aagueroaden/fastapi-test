@@ -92,11 +92,12 @@ class OpportunityService:
                     status_code=status.HTTP_404_NOT_FOUND,
                     detail=f'Opportunity {id}, not found',
                 )
-
-            mappedOpportunity = mappedOportunityById(opportunity)
-            response = {'amount': False} if not mappedOpportunity['amount'] else {
-                'amount': mappedOpportunity['amount']
-                }
+            amount = opportunity.get('Amount')
+            response = {'amount': amount}
+            # mappedOpportunity = mappedOportunityById(opportunity)
+            # response = {'amount': False} if not mappedOpportunity['amount'] else {
+            #     'amount': mappedOpportunity['amount']
+            # }
 
         except HTTPException as e:
             response = {'error': e}

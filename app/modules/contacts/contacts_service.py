@@ -88,7 +88,7 @@ class ContactsService:
                     break
 
         except HTTPException as error:
-            response = {'error': f'unexpected error in getCountries: {error}'}
+            response = {'error': error}
 
         finally:
             return response
@@ -136,17 +136,12 @@ class ContactsService:
                     break
 
         except Exception as error:
-            response = {'error': f"unexpected error in getSelectsField: {error}"}
+            response = {'error': error}
 
         finally:
             return response
 
-    def getFormInscription(self, hashId: str) -> dict:
-        # response = {}
-        try:
-            leadId = base64.b64decode(hashId).decode("utf-8")
-        except Exception:
-            return {'error': f'The hashId provided: {hashId} , is an invalid hashId'}
+    def getFormInscription(self, hashId: str, leadId: str) -> dict:
         try:
             # search the opportunity
             lead = self._salesforce.executeQuery(
@@ -238,14 +233,14 @@ class ContactsService:
             # rename the keys of all the payments
             arrPayments: list = [
                 mappedPaymentsType(dict(payment)) for payment in payments
-                ] if payments else []
+            ] if payments else []
 
             # change the value of installment_amount if posible
             for payment in arrPayments:
                 if payment['qty_installments'] > 0:
                     payment[
                         'installment_amount'
-                        ]: float = payment['total_amount'] / payment['qty_installments']
+                    ]: float = payment['total_amount'] / payment['qty_installments']
 
             form_inscription = self._salesforce.executeQuery(
                 f"""
@@ -294,13 +289,14 @@ class ContactsService:
                     },
                     'academic_information': {
                         'institution_origin': contact['Institucion_de_procedencia__c'],
+                        'high_school_title': contact.get('T_tulo_recibido__c'),
                         # high_school_title, graduation_year, graduation_country and
                         # country_indication:
                         # these keys does not exist in the "Contact" Sobject, they exist in the
                         # "Formulario_Inscripci_n__c", but here(the else statement) only access
                         # if the form inscription is not completed, hence, the opportunity does
                         # not exist in Formulario_Inscripci_n__c sobject, they always be null
-                        'high_school_title': contact.get('Titulo_del_colegio_recibido__c'),
+                        # 'high_school_title': contact.get('Titulo_del_colegio_recibido__c'),
                         'graduation_year': contact.get('A_o_de_graduaci_n__c'),
                         'graduation_country': contact.get('Pa_s_de_graduaci_n__c'),
                         'country_indication': contact.get('Indicativo_del_pa_s__c'),
