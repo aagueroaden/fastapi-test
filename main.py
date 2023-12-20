@@ -92,13 +92,19 @@ async def root():
 @app.get("/oportunities/{id}", tags=['Opportunity'])
 async def oportunities(id: str):
     opportunity = opportunity_service.find0ne(id=id)
-    return {"response_data": opportunity}
+    if 'error' in opportunity:
+        raise opportunity['error']
+    else:
+        return {"response_data": opportunity}
 
 
 @app.get("/oportunities/amount/{id}", tags=['Opportunity'])
 async def opportunity_amount(id: str):
     opportunity = opportunity_service.findOpportunityAmt(id=id)
-    return {"response_data": opportunity}
+    if 'error' in opportunity:
+        raise opportunity['error']
+    else:
+        return {"response_data": opportunity}
 
 
 @app.post("/contacts/form_inscription/documentation", tags=['Contacts'])
@@ -122,9 +128,7 @@ async def uploadDocumentsFormInscription(
     ]
     files = [file for file in files if file is not None]
     if not files:
-        return {"response_data": {'error': HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail=ADD_ONE_FILE
-        )}}
+        raise HTTPException(status_code=status.HTTP_400_BAD_REQUEST, detail=ADD_ONE_FILE)
     return {"response_data": contacts_service.uploadDocumentationDrive(
         salesforce_id=salesforce_id,
         student_name=student_name,
@@ -134,28 +138,50 @@ async def uploadDocumentsFormInscription(
 # TODO: CACHE IT IN SOME WAY
 @app.get('/contacts/form_inscription/link/{id}', tags=['Contacts'])
 async def linkFormInscription(id: str):
-    return {"response_data": contacts_service.generateLinkForm(id)}
+    generate_link_form = contacts_service.generateLinkForm(id)
+    if 'error' in generate_link_form:
+        raise generate_link_form['error']
+    else:
+        return {"response_data": generate_link_form}
 
 
 # TODO: CACHE IT IN SOME WAY
 @app.get("/contacts/countries", tags=['Contacts'])
 async def countryFormInscription():
-    return {'response_data': contacts_service.getCountries()}
+    get_countries = contacts_service.getCountries()
+    if 'error' in get_countries:
+        raise get_countries['error']
+    return {'response_data': get_countries}
 
 
 # TODO: CACHE IT IN SOME WAY
 @app.get("/contacts/utils-selects", tags=['Contacts'])
 async def selectUtilsForm():
-    return {'response_data': contacts_service.getSelectsField()}
+    get_selects_field = contacts_service.getSelectsField()
+    if 'error' in get_selects_field:
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail='unexpected error at getSelectsField'
+        )
+    return {'response_data': get_selects_field}
 
 
 @app.get('/contacts/form_inscription/{id}', tags=['Contacts'])
 async def formInscription(id: str):
-    if not id:
-        return {"response_data": {'error': HTTPException(
-            status_code=status.HTTP_400_BAD_REQUEST, detail='No hash given'
-        )}}
-    return {'response_data': contacts_service.getFormInscription(hashId=id)}
+    decodedId = contacts_service.decodeHashedIdtoSfId(hashId=id)
+    if 'error' in decodedId:
+        raise HTTPException(
+            detail=decodedId.get('error'),
+            status_code=status.HTTP_400_BAD_REQUEST
+        )
+    get_form_inscription = contacts_service.getFormInscription(
+        hashId=id,
+        leadId=decodedId.get('id')
+    )
+    if 'error' in get_form_inscription:
+        raise get_form_inscription['error']
+    else:
+        return {'response_data': get_form_inscription}
 
 
 @app.patch('/contacts/form_inscription/{id}', tags=['Contacts'])
@@ -166,12 +192,14 @@ async def updateformInscription(id: str, updateContact: UpdateContactDto):
             detail=decodedId.get('error'),
             status_code=status.HTTP_400_BAD_REQUEST
         )
-    return {
-        'response_data': contacts_service.updateformInscription(
-            formId=decodedId.get('id'),
-            contactToUpdate=updateContact
-        )
-    }
+    update_form_inscription = contacts_service.updateformInscription(
+        formId=decodedId.get('id'),
+        contactToUpdate=updateContact
+    )
+    if 'error' in update_form_inscription:
+        raise update_form_inscription['error']
+    else:
+        return {'response_data': update_form_inscription}
 
 
 @app.post('/landings', tags=['Landings'])
