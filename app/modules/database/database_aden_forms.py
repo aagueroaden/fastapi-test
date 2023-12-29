@@ -1,4 +1,4 @@
-# from app.schemas.env_schemas import MysqlAdenFormsSchema
+from app.schemas.env_schemas import MysqlAdenFormsSchema
 from sqlalchemy import (
     create_engine,
     Engine,
@@ -25,7 +25,6 @@ from sqlalchemy.orm import (
 from abc import ABC, abstractmethod
 from datetime import datetime
 from app.modules.landings.interesado_salesforce_entity import InteresadoSalesforce
-from app.schemas.env_schemas import MysqlAdenFormsSchema
 # Base = declarative_base()
 
 
@@ -52,7 +51,9 @@ from app.schemas.env_schemas import MysqlAdenFormsSchema
 #     nombre_referidor = Column('nombre_referidor', String(255))
 #     apellido_referidor = Column('apellido_referidor', String(255), nullable=True, default=None)
 
-#     particular_referidor = Column('particular_referidor', String(255), nullable=True, default=None)
+#     particular_referidor = Column(
+#         'particular_referidor', String(255), nullable=True, default=None
+#     )
 #     url_landing = Column('url_landing', String(255), nullable=True, default=None)
 #     facebook_lead_id = Column('facebook_lead_id', String(255), nullable=True, default=None)
 #     facebook_event_id = Column('facebook_event_id', String(255), nullable=True, default=None)
@@ -128,7 +129,8 @@ class AdenForms:
         self,
         email: str,
         current_datetime: datetime,
-        past_datetime: datetime
+        past_datetime: datetime,
+        more_than_one_record: bool
     ):
         """
         search if interesadoLanding email has done already a "consulta",
@@ -141,7 +143,10 @@ class AdenForms:
                 InteresadoSalesforce.create_date > past_datetime,
             )
         )
-        return response
+        if more_than_one_record:
+            return response
+        else:
+            return response.first()
 
     def saveInteresadoSalesforce(
         self,

@@ -14,8 +14,8 @@ class LandingService:
         self._aden_forms: AdenForms = aden_forms
         self._salesforce: SalesForceService = salesforce
 
-    def create(createLanding: CreateLandingDto):
-        pass
+    def create(self, createLanding: CreateLandingDto) -> None | object:
+        return self.findOneInteresadoLanding(createLanding)
 
     def findOneInteresadoLanding(self, createLanding: CreateLandingDto):
         """
@@ -29,8 +29,7 @@ class LandingService:
         query_response = self._aden_forms.findRecentEmails(
             email=createLanding.particular,
             current_datetime=current_datetime,
-            past_datetime=past_datetime
-        )
-        print("podes ver cositas....")
-        print(query_response)
+            past_datetime=past_datetime,
+            more_than_one_record=False
+        ).first()
         return query_response
