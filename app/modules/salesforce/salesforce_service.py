@@ -117,10 +117,7 @@ class SalesForceService:
         except HTTPException:
             if response.status == 401:
                 print("Reconecting to salesforce...")
-                self.connection = Salesforce(
-                    instance=self.connection.sf_instance,
-                    session_id=self.connection.session_id
-                )
+                self.connection = self._connect()
                 return self.requestHTTP(method, endpoint, data)
             print("maybe salesforce secret is outdated?...")
 
