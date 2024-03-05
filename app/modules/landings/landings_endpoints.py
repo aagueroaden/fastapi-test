@@ -10,14 +10,14 @@ landings_router = APIRouter()
 async def create(createLanding: CreateLandingDto):
     try:
         response = landing_service.create(createLanding=createLanding)
-        if 'error' in response:
-            raise HTTPException(
-                status_code=response['status'],
-                detail=response['error']
-            )
-        return {'response_data': response}
     except Exception as error:
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Unexpected Error: {error}"
+            detail=f"Unexpected Error {str(error)}"
         )
+    if 'error' in response:
+        raise HTTPException(
+            status_code=response['status'],
+            detail=response['error']
+        )
+    return {'response_data': response}

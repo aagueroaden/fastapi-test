@@ -87,6 +87,7 @@ class AdenForms:
         self,
         createLanding: CreateLandingDto
     ):
+        create_date = datetime.now().replace(microsecond=0)
         interesado = InteresadoSalesforce(
             nombre=createLanding.nombre,
             apellido=createLanding.apellido,
@@ -113,6 +114,7 @@ class AdenForms:
             origen=createLanding.origen,
             suborigen=createLanding.suborigen,
             cohorte_inversion=createLanding.cohorte_inversion,
+            create_date=create_date
         )
         try:
             self.session.add(interesado)
