@@ -20,10 +20,11 @@ class LandingService:
     def create(self, createLanding: CreateLandingDto) -> None | object:
         interested = self.findOneInteresadoLanding(createLanding)
         if interested:
-            raise HTTPException(
-                status_code=status.HTTP_400_BAD_REQUEST,
-                detail='El formulario ha sido enviado previamente',
-            )
+            return {
+                'status': 400,
+                'error': 'El formulario ha sido enviado previamente',
+            }
+
         try:
             # add newInteresadoSalesforce as a backup in aden_forms db
             newInteresadoSalesforce = self._aden_forms.createInteresadoSalesforce(createLanding)
