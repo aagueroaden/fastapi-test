@@ -1,0 +1,4 @@
+[submodule "salesforce_adenuniversity_edu_pa"]
+	path = salesforce_adenuniversity_edu_pa
+	url = git@github.com:FAD-Desarollo/salesforce_adenuniversity_edu_pa.git
+	branch = main
