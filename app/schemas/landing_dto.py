@@ -38,5 +38,5 @@ class CreateLandingDto(BaseModel):
     canal: str | None = Field(min_length=1, default=None)
     origen: str | None = Field(min_length=1, default=None)
     suborigen: str | None = Field(min_length=1, default=None)
-    formulario_web_id: str | None = None
+    formulario_web_id: None | str = None
     cohorte_inversion: str | None = Field(min_length=1, default=None)

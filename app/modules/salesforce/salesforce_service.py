@@ -94,12 +94,19 @@ class SalesForceService:
         """
         try:
             auth = {'Authorization': 'Bearer ' + self.connection.session_id}
+            if method == "POST":
+                auth = {
+                    'Content-Type': 'application/json',
+                    'Authorization': 'Bearer ' + self.connection.session_id
+                }
+                data = json.dumps(data)
             response = http.request(
                 body=data,
                 method=method,
                 headers=auth,
                 url=self.loginUrl + endpoint
             )
+            print(response.data)
             if response.status == 401:
                 raise HTTPException(
                     status_code=status.HTTP_401_UNAUTHORIZED,
