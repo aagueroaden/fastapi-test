@@ -41,3 +41,10 @@ class MysqlAdenFormsSchema(BaseModel):
     mysql_user: str
     mysql_password: str = Field(default='')
     mysql_db: str
+
+
+class OdooSchema(BaseModel):
+    user: str
+    password: str
+    url: str
+    db_name: str

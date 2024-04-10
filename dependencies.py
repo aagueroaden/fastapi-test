@@ -4,12 +4,17 @@ from app.modules.opportunities.opportunities_service import OpportunityService
 from app.modules.database.database_aden_forms import AdenForms
 from app.modules.gdrive.gdrive_service import GoogleDriveService
 from app.modules.contacts.contacts_service import ContactsService
+from app.modules.odoo_connectors.crm_connector import CrmAdapter
+from app.modules.odoo_connectors.educat_connector import EducatAdapter
+from app.modules.odoo_connectors.educat_mx_connector import EducatMxAdapter
+from app.modules.odoo_connectors.erp_panama_connector import ErpPanamaAdapter
 from app.schemas.env_schemas import (
     AppSchema,
     SalesForceSchema,
     GoogleDriveSchema,
     ContactsSchema,
-    MysqlAdenFormsSchema
+    MysqlAdenFormsSchema,
+    OdooSchema,
 )
 import os
 import sys
@@ -50,6 +55,34 @@ mysql_aden_form_settings = MysqlAdenFormsSchema(
     mysql_db=os.environ.get('MYSQL_DB')
 )
 
+crm_schema = OdooSchema(
+    user=os.environ.get('CRM_USERNAME'),
+    password=os.environ.get('CRM_PASSWORD'),
+    url=os.environ.get('CRM_URL'),
+    db_name=os.environ.get('CRM_DB'),
+)
+
+educat_schema = OdooSchema(
+    user=os.environ.get('EDUCAT_USERNAME'),
+    password=os.environ.get('EDUCAT_PASSWORD'),
+    url=os.environ.get('EDUCAT_URL'),
+    db_name=os.environ.get('EDUCAT_DB'),
+)
+
+educat_mx_schema = OdooSchema(
+    user=os.environ.get('EDUCATMX_USERNAME'),
+    password=os.environ.get('EDUCATMX_PASSWORD'),
+    url=os.environ.get('EDUCATMX_URL'),
+    db_name=os.environ.get('EDUCATMX_DB'),
+)
+
+erp_schema = OdooSchema(
+    user=os.environ.get('ERP_USERNAME'),
+    password=os.environ.get('ERP_PASSWORD'),
+    url=os.environ.get('ERP_URL'),
+    db_name=os.environ.get('ERP_DB')
+)
+
 # instance of modules
 # could not connect to the salesforce instance, exit program
 salesforce_service = SalesForceService(salesforce_settings)
@@ -73,3 +106,9 @@ landing_service = LandingService(
     aden_forms=aden_forms_service,
     salesforce=salesforce_service
 )
+
+# Odoo adapters instances
+crm_adapter = CrmAdapter(OdooSettings=crm_schema)
+educat_adapter = EducatAdapter(OdooSettings=educat_schema)
+educat_mx_adapter = EducatMxAdapter(OdooSettings=educat_mx_schema)
+erp_panama_adapter = ErpPanamaAdapter(OdooSettings=erp_schema)
